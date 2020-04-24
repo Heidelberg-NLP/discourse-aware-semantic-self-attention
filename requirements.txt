@@ -1,0 +1,12 @@
+#allennlp==0.7.0
+
+networkx>=2.0
+py-rouge==1.1
+
+#torch 0.4.1 supports cuda80
+torch==0.4.1
+git+https://github.com/tbmihailov/allennlp@v0.8.3-multi-gpu-accum
+
+# evaluation with docqa/evaluation/pycocoevalcap
+pyrouge==0.1.3
+

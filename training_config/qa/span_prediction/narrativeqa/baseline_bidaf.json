@@ -1,0 +1,168 @@
+{
+    "dataset_reader": {
+        "type": "narrativeqa_summary_with_questions",
+        "passage_length_limit": 800,
+        "question_length_limit": 50,
+        "skip_invalid_examples": true,
+        "token_indexers": {
+            "token_characters": {
+                "type": "characters",
+                "character_tokenizer": {
+                    "byte_encoding": "utf-8",
+                    "end_tokens": [
+                        260
+                    ],
+                    "start_tokens": [
+                        259
+                    ]
+                },
+                "min_padding_length": 5
+            },
+            "tokens": {
+                "type": "single_id",
+                "lowercase_tokens": true
+            }
+        },
+        "tokenizer": {
+            "type": "word",
+            "word_splitter": {
+                "type": "read_sentence_parse_typewise",
+                "fields": [
+                    "tokens->text"
+                ]
+            }
+        }
+    },
+    "iterator": {
+        "type": "bucket",
+        "batch_size": 8,
+        "sorting_keys": [
+            [
+                "passage",
+                "num_tokens"
+            ],
+            [
+                "question",
+                "num_tokens"
+            ]
+        ]
+    },
+    "model": {
+        "type": "bidaf_basic",
+        "dropout": 0.2,
+        "modeling_layer": {
+            "type": "lstm",
+            "bidirectional": true,
+            "dropout": 0.2,
+            "hidden_size": 100,
+            "input_size": 800,
+            "num_layers": 2
+        },
+        "num_highway_layers": 2,
+        "phrase_layer": {
+            "type": "lstm",
+            "bidirectional": true,
+            "dropout": 0.2,
+            "hidden_size": 100,
+            "input_size": 200,
+            "num_layers": 1
+        },
+        "similarity_function": {
+            "type": "dot_product"
+        },
+        "span_end_encoder": {
+            "type": "lstm",
+            "bidirectional": true,
+            "dropout": 0.2,
+            "hidden_size": 100,
+            "input_size": 1400,
+            "num_layers": 1
+        },
+        "text_field_embedder": {
+            "token_embedders": {
+                "token_characters": {
+                    "type": "character_encoding",
+                    "dropout": 0.2,
+                    "embedding": {
+                        "embedding_dim": 16,
+                        "num_embeddings": 262
+                    },
+                    "encoder": {
+                        "type": "cnn",
+                        "embedding_dim": 16,
+                        "ngram_filter_sizes": [
+                            5
+                        ],
+                        "num_filters": 100
+                    }
+                },
+                "tokens": {
+                    "type": "embedding",
+                    "embedding_dim": 100,
+                    "pretrained_file": "https://s3-us-west-2.amazonaws.com/allennlp/datasets/glove/glove.6B.100d.txt.gz",
+                    "trainable": false
+                }
+            }
+        }
+    },
+    "train_data_path": "data/narrativeqa_annotated/summaries_annotated.jsonl.train",
+    "validation_data_path": "data/narrativeqa_annotated/summaries_annotated.jsonl.valid",
+    "test_data_path": "data/narrativeqa_annotated/summaries_annotated.jsonl.test",
+    "trainer": {
+        "accumulation_steps": 4,
+        "cuda_device": 0,
+        "grad_norm": 5,
+        "learning_rate_scheduler": {
+            "type": "reduce_on_plateau",
+            "factor": 0.5,
+            "mode": "max",
+            "patience": 4
+        },
+        "num_epochs": 70,
+        "num_serialized_models_to_keep": 4,
+        "optimizer": {
+            "type": "adam",
+            "betas": [
+                0.8,
+                0.999
+            ],
+            "eps": 1e-07,
+            "lr": 0.001
+        },
+        "patience": 10,
+        "validation_metric": "+rouge-l"
+    },
+    "evaluate_on_test": true,
+    "validation_dataset_reader": {
+        "type": "narrativeqa_summary_with_questions",
+        "skip_invalid_examples": true,
+        "token_indexers": {
+            "token_characters": {
+                "type": "characters",
+                "character_tokenizer": {
+                    "byte_encoding": "utf-8",
+                    "end_tokens": [
+                        260
+                    ],
+                    "start_tokens": [
+                        259
+                    ]
+                },
+                "min_padding_length": 5
+            },
+            "tokens": {
+                "type": "single_id",
+                "lowercase_tokens": true
+            }
+        },
+        "tokenizer": {
+            "type": "word",
+            "word_splitter": {
+                "type": "read_sentence_parse_typewise",
+                "fields": [
+                    "tokens->text"
+                ]
+            }
+        }
+    }
+}
